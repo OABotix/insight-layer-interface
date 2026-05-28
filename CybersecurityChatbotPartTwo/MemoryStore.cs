@@ -1,12 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CybersecurityChatbotPartTwo
 {
-    internal class MemoryStore
+    public class MemoryStore
     {
+        // User information (Requirement 5)
+        public string UserName { get; set; }
+        public string UserInterest { get; set; }
+        public string CurrentTopic { get; set; }
+
+        public MemoryStore()
+        {
+            UserName = "";
+            UserInterest = "";
+            CurrentTopic = "";
+        }
+
+        // Check if user has an interest stored
+        public bool HasInterest()
+        {
+            return !string.IsNullOrEmpty(UserInterest);
+        }
+
+        // Clear all memory (for reset functionality if needed)
+        public void ClearMemory()
+        {
+            UserName = "";
+            UserInterest = "";
+            CurrentTopic = "";
+        }
     }
 }
