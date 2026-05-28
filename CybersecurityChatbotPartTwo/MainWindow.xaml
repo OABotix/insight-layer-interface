@@ -5,8 +5,114 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:CybersecurityChatbotPartTwo"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Cybersecurity Awareness Chatbot" 
+        Height="650" 
+        Width="550"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E2E">
 
+    <Window.Resources>
+        <!-- Style for user messages (blue bubble on right side) -->
+        <Style x:Key="UserBubble" TargetType="Border">
+            <Setter Property="Background" Value="#4A90D9"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="50,5,10,5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <!-- Style for bot messages (dark bubble on left side) -->
+        <Style x:Key="BotBubble" TargetType="Border">
+            <Setter Property="Background" Value="#2D2D3D"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Margin" Value="10,5,50,5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#4A90D9"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- HEADER SECTION - ASCII Art and Title -->
+        <Border Grid.Row="0" Background="#2D2D3D" Padding="10">
+            <StackPanel>
+                <TextBlock x:Name="AsciiLogo" 
+                           FontFamily="Consolas" 
+                           FontSize="9" 
+                           Foreground="#4A90D9"
+                           TextWrapping="Wrap"
+                           Text="Loading logo..." 
+                           HorizontalAlignment="Center"/>
+
+                <TextBlock Text="Cybersecurity Awareness Assistant"
+                           FontSize="14" 
+                           FontWeight="Bold"
+                           Foreground="White"
+                           HorizontalAlignment="Center"
+                           Margin="0,5,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- CHAT DISPLAY AREA -->
+        <ScrollViewer Grid.Row="1" 
+                      x:Name="ChatScrollViewer"
+                      VerticalScrollBarVisibility="Auto"
+                      Background="#1E1E2E">
+            <StackPanel x:Name="ChatPanel" 
+                        Margin="10" 
+                        Orientation="Vertical"/>
+        </ScrollViewer>
+
+        <!-- INPUT AREA -->
+        <Border Grid.Row="2" 
+                Background="#2D2D3D" 
+                Padding="10"
+                BorderBrush="#4A90D9"
+                BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox x:Name="UserInputBox"
+                         Grid.Column="0"
+                         FontSize="14"
+                         Foreground="White"
+                         Background="#1E1E2E"
+                         BorderBrush="#4A90D9"
+                         BorderThickness="1"
+                         Padding="10,8"
+                         KeyDown="UserInputBox_KeyDown"/>
+
+                <Button x:Name="SendButton"
+                        Grid.Column="1"
+                        Content="SEND"
+                        Width="70"
+                        Margin="10,0,0,0"
+                        Background="#4A90D9"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        Click="SendButton_Click"/>
+            </Grid>
+        </Border>
+
+        <!-- STATUS BAR -->
+        <StatusBar Grid.Row="3" Background="#2D2D3D">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText" 
+                           Foreground="#888888" 
+                           FontSize="11">
+                    Ready to help you stay safe online
+                </TextBlock>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
