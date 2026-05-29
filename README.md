@@ -19,9 +19,9 @@ Part 2 expands on the original command-line chatbot by introducing a modern grap
 
 ## Video Presentation
 
-[Watch the demonstration video](YOUR_YOUTUBE_LINK)
+[Watch the demonstration video](https://youtu.be/BCvy5eG6w0o)
 
-[![Watch Demonstration Video](https://img.shields.io/badge/Watch-Video-red)](YOUR_YOUTUBE_LINK)
+[![Watch Demonstration Video](https://img.shields.io/badge/Watch-Video-red)](https://youtu.be/BCvy5eG6w0o)
 
 ---
 
