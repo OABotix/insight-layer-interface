@@ -10,10 +10,10 @@ Part 2 expands on the original command-line chatbot by introducing a modern grap
 
 ## Continuous Integration Status
 
-[.NET Build](https://github.com/YOUR_USERNAME/YOUR_REPOSITORY/actions)
+[.NET Build](https://github.com/OABotix/insight-layer-interface/actions)
 
 **Screenshot of Successful CI Run:**
-(Add your screenshot here after the workflow succeeds.)
+<img width="838" height="431" alt="Screenshot of successful workflow" src="https://github.com/user-attachments/assets/f1089cc5-e36c-4a06-be06-4fa8ea000775" />
 
 ---
 
@@ -215,8 +215,8 @@ Voice greeting recorded by Olwethu.
 
 ## Author
 
-Olwethu [Surname]
-ST[Student Number]
+Olwethu Bhiya
+ST10497311
 
 ---
 
