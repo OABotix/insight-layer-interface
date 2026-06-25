@@ -11,12 +11,16 @@ namespace CybersecurityChatbotPartTwo
         // Dictionary for keyword - display name (for memory)
         private Dictionary<string, string> keywordDisplayNames;
 
+        // Dictionary for keyword - list of synonyms
+        private Dictionary<string, List<string>> keywordSynonyms;
+
         private Random random;
 
         public KeywordResponder()
         {
             random = new Random();
             keywordResponses = new Dictionary<string, List<string>>();
+            keywordSynonyms = new Dictionary<string, List<string>>();
             keywordDisplayNames = new Dictionary<string, string>();
             InitializeResponses();
         }
@@ -107,7 +111,27 @@ namespace CybersecurityChatbotPartTwo
             if (lowerInput.Contains("malware") || lowerInput.Contains("virus") || lowerInput.Contains("ransomware"))
                 return "malware";
 
+            foreach (var kvp in keywordSynonyms)
+            {
+                if (lowerInput.Contains(kvp.Key)) return kvp.Key;
+                foreach (string syn in kvp.Value)
+                    if (lowerInput.Contains(syn)) return kvp.Key;
+            }
+
             return null; // No keyword matched
+        }
+
+        private void InitializeSynonyms()
+        {
+            keywordSynonyms = new Dictionary<string, List<string>>
+            {
+                ["password"] = new List<string> { "passphrase", "credentials", "login", "authentication" },
+                ["phish"] = new List<string> { "scam", "fraud", "deceive", "trick" },
+                ["privacy"] = new List<string> { "personal info", "data", "confidential" },
+                ["brows"] = new List<string> { "internet", "web", "online", "surf" },
+                ["link"] = new List<string> { "url", "click", "address", "website" },
+                ["malware"] = new List<string> { "virus", "ransomware", "spyware", "trojan" }
+            };
         }
 
         // Get random response for a keyword

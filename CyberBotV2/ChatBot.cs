@@ -15,6 +15,10 @@ namespace CybersecurityChatbotPartTwo
         private SentimentDetector sentimentDetector;
         private MemoryStore memoryStore;
 
+        private TaskManager taskManager;
+        private QuizManager quizManager;
+        private ActivityLogger activityLogger;
+
         private Random random;
 
         public ChatBot()
@@ -23,6 +27,10 @@ namespace CybersecurityChatbotPartTwo
             keywordResponder = new KeywordResponder();
             sentimentDetector = new SentimentDetector();
             memoryStore = new MemoryStore();
+
+            activityLogger = new ActivityLogger();
+            taskManager = new TaskManager(activityLogger);
+            quizManager = new QuizManager(activityLogger);
         }
 
         // Play voice greeting when app starts
@@ -103,16 +111,163 @@ namespace CybersecurityChatbotPartTwo
         {
             string input = userInput?.Trim().ToLower() ?? "";
 
-            // ===== HANDLE EXIT COMMANDS =====
+            // ===== EXIT =====
             if (input == "exit" || input == "quit" || input == "goodbye")
             {
+                activityLogger.LogAction("User ended conversation");
                 return $"Thank you for chatting with me, {memoryStore.UserName}! Stay safe online. Goodbye!";
             }
 
-            // ===== HANDLE HELP COMMAND =====
+            // ===== HELP =====
             if (input == "help" || input == "what can you do" || input == "topics")
             {
+                activityLogger.LogAction("User requested help");
                 return GetHelpMessage();
+            }
+
+            // ===== 1. TASK INTENT =====
+            if (input.Contains("add task") || input.Contains("add a task") ||
+                input.Contains("create task") || input.Contains("new task") ||
+                input.Contains("enable") || input.Contains("set up"))
+            {
+                // Extract task title (remove the command prefix)
+                string title = input;
+                string[] prefixes = { "add task", "add a task", "create task", "new task" };
+                foreach (string p in prefixes)
+                {
+                    if (input.Contains(p))
+                    {
+                        title = input.Substring(input.IndexOf(p) + p.Length).Trim();
+                        break;
+                    }
+                }
+                // If still empty, use a default
+                if (string.IsNullOrWhiteSpace(title))
+                    title = "New cybersecurity task";
+
+                // Check if a reminder is mentioned (e.g., "remind me in 3 days")
+                string reminder = "";
+                if (input.Contains("remind"))
+                {
+                    // Simple extraction: take everything after "remind"
+                    int idx = input.IndexOf("remind");
+                    if (idx >= 0)
+                        reminder = input.Substring(idx).Trim();
+                }
+
+                string result = taskManager.AddTask(title, "", reminder);
+                activityLogger.LogAction($"NLP: task intent detected from '{userInput}'");
+                return result + "\n\nWould you like to set a reminder? (say 'remind me in X days')";
+            }
+
+            // ===== 2. REMINDER INTENT =====
+            if (input.Contains("remind me") || input.Contains("set a reminder") ||
+                input.Contains("reminder") || input.Contains("don't forget"))
+            {
+                // Extract what to remind about
+                string reminderText = input;
+                if (input.Contains("remind me"))
+                    reminderText = input.Substring(input.IndexOf("remind me") + "remind me".Length).Trim();
+                else if (input.Contains("reminder"))
+                    reminderText = input.Substring(input.IndexOf("reminder") + "reminder".Length).Trim();
+
+                if (string.IsNullOrWhiteSpace(reminderText))
+                    reminderText = "your cybersecurity task";
+
+                activityLogger.LogAction($"Reminder set: '{reminderText}'");
+                return $"✅ Reminder set for '{reminderText}' on tomorrow's date (simulated).";
+            }
+
+            // ===== 3. QUIZ INTENT =====
+            if (input.Contains("start quiz") || input.Contains("take quiz") ||
+                input.Contains("quiz me") || input.Contains("play game") ||
+                input.Contains("test my knowledge"))
+            {
+                activityLogger.LogAction("NLP: quiz intent detected");
+                if (!quizManager.IsActive)
+                {
+                    quizManager.StartQuiz();
+                    var q = quizManager.GetCurrentQuestion();
+                    if (q != null)
+                        return $"🎮 Starting quiz!\n\n{q.Question}\n\n" + string.Join("\n", q.Options) + "\n\nEnter the letter (A, B, C, D) of your answer.";
+                    else
+                        return "Quiz is unavailable.";
+                }
+                else
+                {
+                    return "You're already in a quiz! Answer the current question.";
+                }
+            }
+
+            // ===== 4. ACTIVITY LOG INTENT =====
+            if (input.Contains("show activity log") || input.Contains("what have you done") ||
+                input.Contains("what did you do") || input.Contains("show log") ||
+                input.Contains("recent actions"))
+            {
+                var recent = activityLogger.GetRecentLog(10);
+                if (recent.Count == 0)
+                    return "📝 No activity logged yet. Start a conversation or use some features!";
+
+                string response = "📝 **Recent Activity Log:**\n\n";
+                int i = 1;
+                foreach (string entry in recent)
+                {
+                    response += $"  {i}. {entry}\n";
+                    i++;
+                }
+                if (activityLogger.Count > 10)
+                    response += $"\n(You have {activityLogger.Count - 10} more entries. Type 'show more' to see them.)";
+                else
+                    response += "\n(Full log shown.)";
+                return response;
+            }
+
+            // ===== 5. SHOW MORE LOG =====
+            if (input.Contains("show more") && activityLogger.Count > 10)
+            {
+                var full = activityLogger.GetFullLog();
+                string response = "📝 **Full Activity Log:**\n\n";
+                int i = 1;
+                foreach (string entry in full)
+                {
+                    response += $"  {i}. {entry}\n";
+                    i++;
+                }
+                return response;
+            }
+
+            // ===== 6. QUIZ ANSWER HANDLING =====
+            if (quizManager.IsActive && !quizManager.IsFinished)
+            {
+                // Map letter input (A, B, C, D) or number to index
+                int? selected = null;
+                string clean = input.Trim().ToUpper();
+                if (clean.Length == 1 && clean[0] >= 'A' && clean[0] <= 'D')
+                    selected = clean[0] - 'A';
+                else if (int.TryParse(input, out int num) && num >= 1 && num <= 4)
+                    selected = num - 1;
+
+                if (selected.HasValue)
+                {
+                    var (correct, explanation, finished) = quizManager.SubmitAnswer(selected.Value);
+                    string feedback = correct ? "✅ Correct!" : "❌ Incorrect.";
+                    feedback += $"\n\n{explanation}\n";
+                    if (finished)
+                    {
+                        string finalMsg = quizManager.GetFinalMessage();
+                        return $"{feedback}\n\n🎉 **Quiz Complete!**\nScore: {quizManager.Score}/{quizManager.TotalQuestions}\n\n{finalMsg}";
+                    }
+                    else
+                    {
+                        var next = quizManager.GetCurrentQuestion();
+                        return $"{feedback}\n\n**Next Question:**\n{next.Question}\n\n" +
+                               string.Join("\n", next.Options) + "\n\nEnter your answer (A-D).";
+                    }
+                }
+                else
+                {
+                    return "Please enter the letter (A, B, C, D) of your answer.";
+                }
             }
 
             // ===== DETECT SENTIMENT FIRST =====
