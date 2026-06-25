@@ -13,6 +13,9 @@
         Loaded="Window_Loaded">
 
 	<Window.Resources>
+		<local:StringToVisibilityConverter x:Key="StringToVisibility"/>
+		<local:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+		
 		<!-- Style for user messages (blue bubble on right side) -->
 		<Style x:Key="UserBubble" TargetType="Border">
 			<Setter Property="Background" Value="#4A90D9"/>
@@ -30,6 +33,27 @@
 			<Setter Property="Margin" Value="10,5,50,5"/>
 			<Setter Property="BorderThickness" Value="1"/>
 			<Setter Property="BorderBrush" Value="#4A90D9"/>
+		</Style>
+
+		<!-- Style for TabItem headers -->
+		<Style TargetType="TabItem">
+			<Setter Property="Foreground" Value="#888888"/>
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Padding" Value="15,8"/>
+			<Setter Property="Background" Value="Transparent"/>
+			<Setter Property="BorderBrush" Value="Transparent"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Style.Triggers>
+				<Trigger Property="IsSelected" Value="True">
+					<Setter Property="Foreground" Value="#4A90D9"/>
+					<Setter Property="BorderBrush" Value="#4A90D9"/>
+					<Setter Property="BorderThickness" Value="0,0,0,2"/>
+				</Trigger>
+				<Trigger Property="IsMouseOver" Value="True">
+					<Setter Property="Foreground" Value="#AAAAAA"/>
+				</Trigger>
+			</Style.Triggers>
 		</Style>
 	</Window.Resources>
 
@@ -104,11 +128,10 @@
 			<!-- TabControl -->
 			<TabControl Grid.Row="1"
 						Background="#1E1E2E"
-						BorderThickness="0">
+						BorderThickness="0"
+						SelectionChanged="TabControl_SelectionChanged">
 				<!-- CHAT TAB -->
-				<TabItem Header="💬 Chat"
-						 Background="#2D2D3D"
-						 Foreground="White">
+				<TabItem Header="💬 Chat">
 					<Grid>
 						<Grid.RowDefinitions>
 							<RowDefinition Height="*"/>
@@ -157,162 +180,209 @@
 				</TabItem>
 
 				<!-- TASKS TAB -->
-				<TabItem Header="📋 Tasks"
-						 Background="#2D2D3D"
-						 Foreground="White">
+				<TabItem Header="📋 Tasks">
 					<Grid Margin="10" Background="#1E1E2E">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
 							<RowDefinition Height="*"/>
 							<RowDefinition Height="Auto"/>
 						</Grid.RowDefinitions>
+
+						<!-- Add Task Section -->
 						<Border Grid.Row="0"
 								Background="#2D2D3D"
 								Padding="10"
 								Margin="0,0,0,10"
 								CornerRadius="8">
 							<StackPanel>
-								<TextBlock Text="Add New Task"
-                                           FontWeight="Bold"
-                                           Foreground="White"
-                                           Margin="0,0,0,5"/>
+								<TextBlock Text="📝 Add New Cybersecurity Task"
+										   FontWeight="Bold"
+										   Foreground="White"
+										   FontSize="14"
+										   Margin="0,0,0,10"/>
+								<TextBlock Text="Task Title *"
+										   Foreground="#888888"
+										   FontSize="11"
+										   Margin="0,0,0,2"/>
 								<TextBox x:Name="TaskTitleBox"
-                                         Foreground="White"
-                                         Background="#1E1E2E"
-                                         BorderBrush="#4A90D9"
-                                         BorderThickness="1"
-                                         Padding="5" Margin="0,0,0,5"
-                                         Text="Enable two-factor authentication"/>
+										 Foreground="White"
+										 Background="#1E1E2E"
+										 BorderBrush="#4A90D9"
+										 BorderThickness="1"
+										 Padding="5"
+										 Margin="0,0,0,8"
+										 Text="Enable two-factor authentication"/>
+								<TextBlock Text="Description"
+										   Foreground="#888888"
+										   FontSize="11"
+										   Margin="0,0,0,2"/>
 								<TextBox x:Name="TaskDescBox"
-                                         Foreground="White"
-                                         Background="#1E1E2E"
-                                         BorderBrush="#4A90D9"
-                                         BorderThickness="1"
-                                         Padding="5" Margin="0,0,0,5"
-                                         Text="Set up 2FA on all accounts"/>
+										 Foreground="White"
+										 Background="#1E1E2E"
+										 BorderBrush="#4A90D9"
+										 BorderThickness="1"
+										 Padding="5"
+										 Margin="0,0,0,8"
+										 Text="Set up 2FA on all accounts"/>
+								<TextBlock Text="Reminder (optional)"
+										   Foreground="#888888"
+										   FontSize="11"
+										   Margin="0,0,0,2"/>
 								<TextBox x:Name="TaskReminderBox"
-                                         Foreground="White"
-                                         Background="#1E1E2E"
-                                         BorderBrush="#4A90D9"
-                                         BorderThickness="1"
-                                         Padding="5" Margin="0,0,0,5"
-                                         Text="Remind me in 7 days"/>
+										 Foreground="White"
+										 Background="#1E1E2E"
+										 BorderBrush="#4A90D9"
+										 BorderThickness="1"
+										 Padding="5"
+										 Margin="0,0,0,8"
+										 Text="Remind me in 7 days"/>
 								<Button Content="➕ Add Task"
-                                        Background="#4A90D9"
-                                        Foreground="White"
-                                        FontWeight="Bold"
-                                        Click="AddTaskButton_Click"/>
+										Background="#4A90D9"
+										Foreground="White"
+										FontWeight="Bold"
+										Click="AddTaskButton_Click"
+										Height="35"/>
+								<TextBlock Text="* Title is required"
+										   Foreground="#666666"
+										   FontSize="10"
+										   Margin="0,5,0,0"/>
 							</StackPanel>
 						</Border>
+
 						<!-- Task List -->
+						<TextBlock Text="📋 Your Tasks"
+								   Foreground="#CCCCCC"
+								   FontSize="12"
+								   FontWeight="Bold"
+								   Margin="0,0,0,5"
+								   Grid.Row="1"
+								   VerticalAlignment="Top"/>
 						<ListBox x:Name="TaskListBox"
-                                 Grid.Row="1"
-                                 Background="#1E1E2E"
-                                 BorderBrush="#4A90D9"
-                                 Foreground="White"
-                                 Margin="0,0,0,10">
+								 Grid.Row="1"
+								 Background="#1E1E2E"
+								 BorderBrush="#4A90D9"
+								 Foreground="White"
+								 Margin="0,25,0,10">
 							<ListBox.ItemTemplate>
 								<DataTemplate>
 									<Border Background="#2D2D3D"
-                                            CornerRadius="5"
-                                            Padding="5"
-                                            Margin="2">
+											CornerRadius="5"
+											Padding="8"
+											Margin="2">
 										<StackPanel>
 											<TextBlock Text="{Binding Title}"
-                                                       FontWeight="Bold"
-                                                       Foreground="White"/>
+													   FontWeight="Bold"
+													   Foreground="White"/>
 											<TextBlock Text="{Binding Description}"
-                                                       Foreground="#CCCCCC"
-                                                       FontSize="11"/>
+													   Foreground="#CCCCCC"
+													   FontSize="11"/>
 											<TextBlock Text="{Binding Reminder}"
-                                                       Foreground="#888888"
-                                                       FontSize="10"
-                                                       Visibility="{Binding Reminder, Converter={StaticResource StringToVisibility}}"/>
+													   Foreground="#888888"
+													   FontSize="10"
+													   Visibility="{Binding Reminder, Converter={StaticResource StringToVisibility}}"/>
 											<TextBlock Text="✅ Completed"
-                                                       Foreground="#4CAF50"
-                                                       FontSize="10"
-                                                       Visibility="{Binding IsComplete, Converter={StaticResource BoolToVisibility}}"/>
+													   Foreground="#4CAF50"
+													   FontSize="10"
+													   Visibility="{Binding IsComplete, Converter={StaticResource BoolToVisibility}}"/>
 										</StackPanel>
 									</Border>
 								</DataTemplate>
 							</ListBox.ItemTemplate>
 						</ListBox>
+
 						<!-- Action Buttons -->
 						<StackPanel Grid.Row="2"
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center">
+									Orientation="Horizontal"
+									HorizontalAlignment="Center">
 							<Button Content="✅ Mark Complete"
-                                    Background="#4A90D9"
-                                    Foreground="White"
-                                    FontWeight="Bold"
-                                    Margin="0,0,5,0" Click="CompleteTaskButton_Click"/>
+									Background="#4A90D9"
+									Foreground="White"
+									FontWeight="Bold"
+									Margin="0,0,5,0"
+									Click="CompleteTaskButton_Click"/>
 							<Button Content="🗑️ Delete"
-                                    Background="#D94A4A"
-                                    Foreground="White"
-                                    FontWeight="Bold"
-                                    Margin="5,0,0,0" Click="DeleteTaskButton_Click"/>
+									Background="#D94A4A"
+									Foreground="White"
+									FontWeight="Bold"
+									Margin="5,0,0,0"
+									Click="DeleteTaskButton_Click"/>
 						</StackPanel>
 					</Grid>
 				</TabItem>
 
 				<!-- QUIZ TAB -->
-				<TabItem Header="🎮 Quiz"
-                         Background="#2D2D3D"
-                         Foreground="White">
+				<TabItem Header="🎮 Quiz">
 					<Grid Margin="10" Background="#1E1E2E">
 						<Grid.RowDefinitions>
 							<RowDefinition Height="Auto"/>
-							<RowDefinition Height="*"/>
+							<!-- Question & Score -->
 							<RowDefinition Height="Auto"/>
+							<!-- Feedback -->
+							<RowDefinition Height="*"/>
+							<!-- Options -->
+							<RowDefinition Height="Auto"/>
+							<!-- Buttons -->
 						</Grid.RowDefinitions>
-						<StackPanel Grid.Row="0" Margin="0,0,0,10">
+
+						<!-- Question & Score -->
+						<StackPanel Grid.Row="0" Margin="0,0,0,5">
 							<TextBlock x:Name="QuizQuestionText"
-                                       Text="Press 'Start Quiz' to begin!"
-                                       Foreground="White"
-                                       FontSize="14"
-                                       TextWrapping="Wrap"/>
+									   Text="Press 'Start Quiz' to begin!"
+									   Foreground="White"
+									   FontSize="14"
+									   TextWrapping="Wrap"/>
 							<TextBlock x:Name="QuizScoreText"
-                                       Text="Score: 0/0"
-                                       Foreground="#888888"
-                                       Margin="0,5,0,0"/>
+									   Text="Score: 0/0"
+									   Foreground="#888888"
+									   Margin="0,5,0,0"/>
 						</StackPanel>
-						<!-- Options will be created dynamically in code-behind -->
+
+						<!-- Feedback (separate row, above options) -->
+						<Border Grid.Row="1"
+								Background="#1E1E2E"
+								Padding="5"
+								CornerRadius="5"
+								Margin="0,0,0,8">
+							<TextBlock x:Name="QuizFeedbackText"
+									   Foreground="#FFD700"
+									   FontWeight="Bold"
+									   TextWrapping="Wrap"
+									   Text=""/>
+						</Border>
+
+						<!-- Options (dynamically created) -->
 						<StackPanel x:Name="QuizOptionsPanel"
-                                    Grid.Row="1"
-                                    Margin="0,0,0,10">
-							<!-- Radio buttons will be added here -->
-						</StackPanel>
+									Grid.Row="2"
+									Margin="0,0,0,10"/>
+
 						<!-- Buttons -->
-						<StackPanel Grid.Row="2"
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Margin="0,10,0,0">
+						<StackPanel Grid.Row="3"
+									Orientation="Horizontal"
+									HorizontalAlignment="Center"
+									Margin="0,5,0,0">
 							<Button x:Name="QuizStartButton"
-                                    Content="🎯 Start Quiz"
-                                    Background="#4A90D9"
-                                    Foreground="White"
-                                    FontWeight="Bold"
-                                    Margin="0,0,10,0" Click="QuizStartButton_Click"/>
+									Content="🎯 Start Quiz"
+									Background="#4A90D9"
+									Foreground="White"
+									FontWeight="Bold"
+									Margin="0,0,10,0"
+									Click="QuizStartButton_Click"/>
 							<Button x:Name="QuizSubmitButton"
-                                    Content="Submit Answer"
-                                    Background="#4A90D9"
-                                    Foreground="White"
-                                    FontWeight="Bold"
-                                    Margin="0,0,10,0" Click="QuizSubmitButton_Click"
-                                    Visibility="Collapsed"/>
+									Content="Submit Answer"
+									Background="#4A90D9"
+									Foreground="White"
+									FontWeight="Bold"
+									Margin="0,0,10,0"
+									Click="QuizSubmitButton_Click"
+									Visibility="Collapsed"/>
 							<Button x:Name="QuizNextButton"
-                                    Content="Next Question"
-                                    Background="#4A90D9"
-                                    Foreground="White"
-                                    FontWeight="Bold" Click="QuizNextButton_Click"
-                                    Visibility="Collapsed"/>
+									Content="Next Question ➜"
+									Background="#4A90D9"
+									Foreground="White"
+									FontWeight="Bold"
+									Click="QuizNextButton_Click"
+									Visibility="Collapsed"/>
 						</StackPanel>
-						<TextBlock x:Name="QuizFeedbackText"
-                                   Grid.Row="2"
-                                   Grid.ColumnSpan="2"
-                                   Foreground="#FFD700"
-                                   FontWeight="Bold" HorizontalAlignment="Center"
-                                   Margin="0,40,0,0"/>
 					</Grid>
 				</TabItem>
 			</TabControl>

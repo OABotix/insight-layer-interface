@@ -5,20 +5,23 @@ using Newtonsoft.Json;
 
 namespace CybersecurityChatbotPartTwo
 {
+    /// Represents a single cybersecurity task. Used for serialisation to/from JSON.
     public class CyberTask
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Reminder { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public string? Reminder { get; set; }
         public bool IsComplete { get; set; }
-        public string CreatedAt { get; set; }
+        public string? CreatedAt { get; set; }
     }
 
+    /// Handles all JSON file operations for tasks. Reads from and writes to "tasks.json" in the application's output folder.
     public class TaskStorageHelper
     {
         private const string FilePath = "tasks.json";
 
+        // Loads all tasks from the JSON file.
         public List<CyberTask> LoadTasks()
         {
             try
@@ -36,6 +39,7 @@ namespace CybersecurityChatbotPartTwo
             return new List<CyberTask>();
         }
 
+        // Saves the given list of tasks to the JSON file.
         public void SaveTasks(List<CyberTask> tasks)
         {
             try
@@ -49,6 +53,7 @@ namespace CybersecurityChatbotPartTwo
             }
         }
 
+        // Adds a new task to the JSON storage.
         public void AddTask(string title, string description, string reminder)
         {
             var tasks = LoadTasks();
@@ -65,6 +70,7 @@ namespace CybersecurityChatbotPartTwo
             SaveTasks(tasks);
         }
 
+        // Marks a task as completed by its Id.
         public void MarkComplete(int id)
         {
             var tasks = LoadTasks();
@@ -76,6 +82,7 @@ namespace CybersecurityChatbotPartTwo
             }
         }
 
+        // Deletes a task by its Id.
         public void DeleteTask(int id)
         {
             var tasks = LoadTasks();

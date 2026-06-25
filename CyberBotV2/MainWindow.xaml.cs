@@ -209,10 +209,10 @@ namespace CybersecurityChatbotPartTwo
 
             // Check for exit - disable input if user said goodbye
             string lowerInput = userInput.ToLower().Trim();
-            if (lowerInput == "exit" || lowerInput == "quit" || lowerInput == "goodbye")
+            if (lowerInput != "exit" && lowerInput != "quit" && lowerInput != "goodbye")
             {
-                UserInputBox.IsEnabled = false;
-                SendButton.IsEnabled = false;
+                UserInputBox.IsEnabled = true;
+                SendButton.IsEnabled = true;
             }
         }
 
@@ -229,7 +229,9 @@ namespace CybersecurityChatbotPartTwo
             }
             taskManager.AddTask(title, desc, reminder);
             RefreshTaskList();
-            // Also log action (already logged inside taskManager)
+            TaskTitleBox.Clear();
+            TaskDescBox.Clear();
+            TaskReminderBox.Clear();
         }
 
         private void CompleteTaskButton_Click(object sender, RoutedEventArgs e)
@@ -270,19 +272,79 @@ namespace CybersecurityChatbotPartTwo
             ShowCurrentQuizQuestion();
         }
 
+        private void RegenerateQuizQuestions()
+        {
+            // Reset quiz and reshuffle questions
+            quizManager = new QuizManager(activityLogger);
+            MessageBox.Show("🔄 Questions regenerated! Click 'Start Quiz' to try again.", "Quiz Ready", MessageBoxButton.OK, MessageBoxImage.Information);
+            QuizStartButton.Visibility = Visibility.Visible;
+            QuizFeedbackText.Text = "";
+            QuizQuestionText.Text = "Press 'Start Quiz' to begin!";
+            QuizScoreText.Text = "Score: 0/0";
+        }
+
         private void ShowCurrentQuizQuestion()
         {
             var q = quizManager.GetCurrentQuestion();
             if (q == null)
             {
-                // Quiz finished
-                QuizQuestionText.Text = "🎉 Quiz complete!";
-                QuizScoreText.Text = $"Final Score: {quizManager.Score}/{quizManager.TotalQuestions}\n\n{quizManager.GetFinalMessage()}";
+                // Quiz finished - Show Report
+                QuizQuestionText.Text = "🎉 Quiz Complete!";
+                QuizScoreText.Text = $"Final Score: {quizManager.Score}/{quizManager.TotalQuestions}";
+
+                // Show final message with color
+                string finalMsg = quizManager.GetFinalMessage();
+                string emoji = quizManager.Score >= 8 ? "🌟" : "📚";
+
+                QuizFeedbackText.Text = $"{emoji} {finalMsg}";
+                QuizFeedbackText.Foreground = new SolidColorBrush(quizManager.Score >= 8 ? Colors.LightGreen : Colors.Gold);
+
                 QuizOptionsPanel.Children.Clear();
                 QuizSubmitButton.Visibility = Visibility.Collapsed;
                 QuizNextButton.Visibility = Visibility.Collapsed;
-                QuizStartButton.Visibility = Visibility.Visible;
-                QuizFeedbackText.Text = "";
+                QuizStartButton.Visibility = Visibility.Collapsed;
+
+                // Add Retry and Regenerate buttons
+                StackPanel buttonPanel = new StackPanel
+                {
+                    Orientation = Orientation.Horizontal,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 10, 0, 0)
+                };
+
+                Button retryBtn = new Button
+                {
+                    Content = "🔁 Retry Quiz",
+                    Background = new SolidColorBrush(Color.FromRgb(74, 144, 217)),
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.Bold,
+                    Margin = new Thickness(0, 0, 10, 0),
+                    Padding = new Thickness(15, 8, 15, 8)
+                };
+                retryBtn.Click += (s, args) => { QuizStartButton_Click(s, args); };
+
+                Button regenerateBtn = new Button
+                {
+                    Content = "🔄 New Questions",
+                    Background = new SolidColorBrush(Color.FromRgb(74, 144, 217)),
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.Bold,
+                    Padding = new Thickness(15, 8, 15, 8)
+                };
+                regenerateBtn.Click += (s, args) => { RegenerateQuizQuestions(); };
+
+                buttonPanel.Children.Add(retryBtn);
+                buttonPanel.Children.Add(regenerateBtn);
+
+                // Add to grid (find the grid parent)
+                var parentGrid = QuizOptionsPanel.Parent as Grid;
+                if (parentGrid != null)
+                {
+                    Grid.SetRow(buttonPanel, 3);
+                    Grid.SetColumnSpan(buttonPanel, 2);
+                    parentGrid.Children.Add(buttonPanel);
+                }
+
                 return;
             }
 
@@ -326,7 +388,18 @@ namespace CybersecurityChatbotPartTwo
 
             int selectedIndex = (int)selected.Tag;
             var (correct, explanation, finished) = quizManager.SubmitAnswer(selectedIndex);
-            QuizFeedbackText.Text = (correct ? "✅ Correct!" : "❌ Incorrect.") + "\n" + explanation;
+
+            // Color the feedback text
+            if (correct)
+            {
+                QuizFeedbackText.Foreground = new SolidColorBrush(Colors.LightGreen);
+                QuizFeedbackText.Text = "✅ Correct!\n" + explanation;
+            }
+            else
+            {
+                QuizFeedbackText.Foreground = new SolidColorBrush(Colors.IndianRed);
+                QuizFeedbackText.Text = "❌ Incorrect.\n" + explanation;
+            }
 
             QuizSubmitButton.Visibility = Visibility.Collapsed;
             if (!finished)
@@ -349,6 +422,18 @@ namespace CybersecurityChatbotPartTwo
             QuizNextButton.Visibility = Visibility.Collapsed;
             ShowCurrentQuizQuestion();
             QuizSubmitButton.Visibility = Visibility.Visible;
+        }
+
+        private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            // When switching to Chat tab, focus the input box
+            if (e.AddedItems.Count > 0 && e.AddedItems[0] is TabItem selected)
+            {
+                if (selected.Header.ToString().Contains("Chat"))
+                {
+                    UserInputBox.Focus();
+                }
+            }
         }
 
         // Window loaded event

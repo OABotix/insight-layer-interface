@@ -23,6 +23,7 @@ namespace CybersecurityChatbotPartTwo
             keywordSynonyms = new Dictionary<string, List<string>>();
             keywordDisplayNames = new Dictionary<string, string>();
             InitializeResponses();
+            InitializeSynonyms();
         }
 
         private void InitializeResponses()

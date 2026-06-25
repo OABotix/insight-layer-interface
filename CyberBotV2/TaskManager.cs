@@ -13,6 +13,7 @@ namespace CybersecurityChatbotPartTwo
             _logger = logger;
         }
 
+        // Adds a new task, logs the action, and returns a confirmation message.
         public string AddTask(string title, string description, string reminder)
         {
             _storage.AddTask(title, description, reminder);
@@ -21,11 +22,13 @@ namespace CybersecurityChatbotPartTwo
             return $"✅ Task added: '{title}'" + (string.IsNullOrEmpty(reminder) ? "" : $" with reminder: {reminder}");
         }
 
+        // Retrieves all tasks from storage.
         public List<CyberTask> GetAllTasks()
         {
             return _storage.LoadTasks();
         }
 
+        // Marks a task as complete, logs the action, and returns confirmation.
         public string MarkComplete(int id)
         {
             _storage.MarkComplete(id);
@@ -33,6 +36,7 @@ namespace CybersecurityChatbotPartTwo
             return $"✅ Task #{id} marked as complete!";
         }
 
+        // Deletes a task, logs the action, and returns confirmation.
         public string DeleteTask(int id)
         {
             _storage.DeleteTask(id);

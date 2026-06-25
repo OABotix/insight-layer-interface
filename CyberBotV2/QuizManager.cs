@@ -3,14 +3,16 @@ using System.Collections.Generic;
 
 namespace CybersecurityChatbotPartTwo
 {
+    // quiz question with multiple‑choice options.
     public class QuizQuestion
     {
-        public string Question { get; set; }
-        public List<string> Options { get; set; }
+        public string? Question { get; set; }
+        public List<string>? Options { get; set; }
         public int CorrectIndex { get; set; }
-        public string Explanation { get; set; }
+        public string? Explanation { get; set; }
     }
 
+    // Manages the cybersecurity quiz: questions, score, and state. Also logs quiz activity.
     public class QuizManager
     {
         private List<QuizQuestion> _questions;
@@ -19,6 +21,7 @@ namespace CybersecurityChatbotPartTwo
         private bool _isActive = false;
         private ActivityLogger _logger;
 
+        // Initialises 
         public QuizManager(ActivityLogger logger)
         {
             _logger = logger;
@@ -26,6 +29,7 @@ namespace CybersecurityChatbotPartTwo
             InitializeQuestions();
         }
 
+        // Populates the question list with at least 12 questions
         private void InitializeQuestions()
         {
             // 12 questions covering phishing, password, browsing, social engineering, 2FA, malware, privacy
@@ -115,6 +119,7 @@ namespace CybersecurityChatbotPartTwo
             });
         }
 
+        // Starts a new quiz
         public void StartQuiz()
         {
             _currentIndex = 0;
@@ -126,6 +131,7 @@ namespace CybersecurityChatbotPartTwo
         public bool IsActive => _isActive;
         public bool IsFinished => _currentIndex >= _questions.Count;
 
+        // Returns the current question
         public QuizQuestion GetCurrentQuestion()
         {
             if (_isActive && !IsFinished)
@@ -137,6 +143,7 @@ namespace CybersecurityChatbotPartTwo
         public int TotalQuestions => _questions.Count;
         public int Score => _score;
 
+        // Submits the user's selected answer. Updates score, logs correctness, and advances to next question.
         public (bool correct, string explanation, bool finished) SubmitAnswer(int selectedIndex)
         {
             if (!_isActive || IsFinished)
@@ -160,6 +167,7 @@ namespace CybersecurityChatbotPartTwo
             return (correct, q.Explanation, finished);
         }
 
+        // Generates a final feedback message based on the percentage score.
         public string GetFinalMessage()
         {
             double pct = (double)_score / TotalQuestions * 100;
