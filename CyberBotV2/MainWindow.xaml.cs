@@ -12,6 +12,9 @@ namespace CybersecurityChatbotPartTwo
     public partial class MainWindow : Window
     {
         private ChatBot chatbot;
+        private TaskManager taskManager;
+        private QuizManager quizManager;
+        private ActivityLogger activityLogger;
         private DispatcherTimer typingTimer;
         private string currentTypingMessage = "";
         private int currentCharIndex = 0;
@@ -24,6 +27,9 @@ namespace CybersecurityChatbotPartTwo
 
             // Create the chatbot instance
             chatbot = new ChatBot();
+            activityLogger = new ActivityLogger();
+            taskManager = new TaskManager(activityLogger);
+            quizManager = new QuizManager(activityLogger);
 
             // Load ASCII logo for splash screen
             SplashLogo.Text = chatbot.LoadAsciiLogo();
@@ -210,10 +216,145 @@ namespace CybersecurityChatbotPartTwo
             }
         }
 
+        // ---- TASK HANDLERS ----
+        private void AddTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            string title = TaskTitleBox.Text.Trim();
+            string desc = TaskDescBox.Text.Trim();
+            string reminder = TaskReminderBox.Text.Trim();
+            if (string.IsNullOrEmpty(title))
+            {
+                MessageBox.Show("Please enter a task title.", "Missing Info", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            taskManager.AddTask(title, desc, reminder);
+            RefreshTaskList();
+            // Also log action (already logged inside taskManager)
+        }
+
+        private void CompleteTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (TaskListBox.SelectedItem is CyberTask selected)
+            {
+                taskManager.MarkComplete(selected.Id);
+                RefreshTaskList();
+            }
+            else
+                MessageBox.Show("Select a task to mark complete.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void DeleteTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (TaskListBox.SelectedItem is CyberTask selected)
+            {
+                taskManager.DeleteTask(selected.Id);
+                RefreshTaskList();
+            }
+            else
+                MessageBox.Show("Select a task to delete.", "No Selection", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void RefreshTaskList()
+        {
+            TaskListBox.ItemsSource = null;
+            TaskListBox.ItemsSource = taskManager.GetAllTasks();
+        }
+
+        // ---- QUIZ HANDLERS ----
+        private void QuizStartButton_Click(object sender, RoutedEventArgs e)
+        {
+            quizManager.StartQuiz();
+            QuizStartButton.Visibility = Visibility.Collapsed;
+            QuizSubmitButton.Visibility = Visibility.Visible;
+            QuizNextButton.Visibility = Visibility.Collapsed;
+            ShowCurrentQuizQuestion();
+        }
+
+        private void ShowCurrentQuizQuestion()
+        {
+            var q = quizManager.GetCurrentQuestion();
+            if (q == null)
+            {
+                // Quiz finished
+                QuizQuestionText.Text = "🎉 Quiz complete!";
+                QuizScoreText.Text = $"Final Score: {quizManager.Score}/{quizManager.TotalQuestions}\n\n{quizManager.GetFinalMessage()}";
+                QuizOptionsPanel.Children.Clear();
+                QuizSubmitButton.Visibility = Visibility.Collapsed;
+                QuizNextButton.Visibility = Visibility.Collapsed;
+                QuizStartButton.Visibility = Visibility.Visible;
+                QuizFeedbackText.Text = "";
+                return;
+            }
+
+            QuizQuestionText.Text = $"Q{quizManager.CurrentQuestionNumber}/{quizManager.TotalQuestions}: {q.Question}";
+            QuizScoreText.Text = $"Score: {quizManager.Score}";
+            QuizOptionsPanel.Children.Clear();
+            // Create radio buttons for each option
+            for (int i = 0; i < q.Options.Count; i++)
+            {
+                var rb = new System.Windows.Controls.RadioButton
+                {
+                    Content = q.Options[i],
+                    Tag = i,
+                    Foreground = System.Windows.Media.Brushes.White,
+                    Margin = new System.Windows.Thickness(5)
+                };
+                QuizOptionsPanel.Children.Add(rb);
+            }
+            QuizFeedbackText.Text = "";
+            QuizSubmitButton.Visibility = Visibility.Visible;
+            QuizNextButton.Visibility = Visibility.Collapsed;
+        }
+
+        private void QuizSubmitButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Find selected radio button
+            System.Windows.Controls.RadioButton selected = null;
+            foreach (var child in QuizOptionsPanel.Children)
+            {
+                if (child is System.Windows.Controls.RadioButton rb && rb.IsChecked == true)
+                {
+                    selected = rb;
+                    break;
+                }
+            }
+            if (selected == null)
+            {
+                QuizFeedbackText.Text = "Please select an answer.";
+                return;
+            }
+
+            int selectedIndex = (int)selected.Tag;
+            var (correct, explanation, finished) = quizManager.SubmitAnswer(selectedIndex);
+            QuizFeedbackText.Text = (correct ? "✅ Correct!" : "❌ Incorrect.") + "\n" + explanation;
+
+            QuizSubmitButton.Visibility = Visibility.Collapsed;
+            if (!finished)
+            {
+                QuizNextButton.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                // Quiz finished
+                QuizQuestionText.Text = "🎉 Quiz complete!";
+                QuizScoreText.Text = $"Final Score: {quizManager.Score}/{quizManager.TotalQuestions}\n\n{quizManager.GetFinalMessage()}";
+                QuizOptionsPanel.Children.Clear();
+                QuizNextButton.Visibility = Visibility.Collapsed;
+                QuizStartButton.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void QuizNextButton_Click(object sender, RoutedEventArgs e)
+        {
+            QuizNextButton.Visibility = Visibility.Collapsed;
+            ShowCurrentQuizQuestion();
+            QuizSubmitButton.Visibility = Visibility.Visible;
+        }
+
         // Window loaded event
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            // Optional: Any startup animations or focus
+            RefreshTaskList(); // Load tasks from JSON
             UserInputBox.Focus();
         }
     }
