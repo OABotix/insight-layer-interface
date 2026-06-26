@@ -1,10 +1,16 @@
-# Cybersecurity Awareness Chatbot - Part 2
+ # Cybersecurity Awareness Chatbot - Full Project
 
 ## Protecting South African Citizens Through Interactive Cybersecurity Education
 
 This project is an advanced WPF-based cybersecurity awareness chatbot designed to educate South African citizens about modern cybersecurity threats including phishing scams, password attacks, malware, suspicious links, privacy concerns, and unsafe browsing habits.
 
 Part 2 expands on the original command-line chatbot by introducing a modern graphical user interface, improved conversational flow, sentiment detection, memory functionality, typing animations, and enhanced user interaction.
+
+**Part 3** completes the application by adding:
+- A **Task Assistant** with persistent JSON storage  
+- A **Cybersecurity Quiz** with 12 questions and immediate feedback  
+- **Activity Logging** with recent‑entry limits and a *Show More* feature  
+- **NLP Simulation** that understands tasks, reminders, quiz, and log requests phrased in multiple ways  
 
 ---
 
@@ -29,28 +35,46 @@ Part 2 expands on the original command-line chatbot by introducing a modern grap
 
 ```
 CyberBotV2/
+├── .github/workflows/
+│   └── build.yml                 # CI workflow (GitHub Actions)
 ├── Audio/
-│   └── welcome_greeting.wav
-├── obj/
-├── bin/
-├── App.xaml
-├── App.xaml.cs
+│   └── welcome_greeting.wav      # Voice greeting
+├── App.xaml / App.xaml.cs
 ├── AssemblyInfo.cs
-├── ChatBot.cs
+├── ChatBot.cs                    # Main logic, NLP intent routing
+├── Converters.cs                 # Value converters for XAML bindings
 ├── CyberBotV2.csproj
-├── KeywordResponder.cs
-├── logo.txt
-├── MainWindow.xaml
-├── MainWindow.xaml.cs
-├── MemoryStore.cs
-├── SentimentDetector.cs
-└── README.md
+├── KeywordResponder.cs           # Keyword matching & synonyms
+├── logo.txt                      # ASCII art
+├── MainWindow.xaml               # GUI layout (Chat, Tasks, Quiz tabs)
+├── MainWindow.xaml.cs            # UI event handlers
+├── MemoryStore.cs                # User name / interest memory
+├── SentimentDetector.cs          # Worried / curious / frustrated detection
+├── ActivityLogger.cs             # Logging with timestamps
+├── QuizManager.cs                # Quiz logic (12 questions, scoring)
+├── TaskManager.cs                # Business logic for tasks
+├── TaskStorageHelper.cs          # JSON read/write (CyberTask model)
+├── README.md
+└── (bin/ and obj/ – generated on build)
 
 ```
 
 ---
 
 ## Features
+
+
+### Part 1 - Basic Chatbot Interaction
+- **Voice Greeting:** Plays a recorded WAV file welcoming users
+- **ASCII Art Display:** Shows a cybersecurity-themed logo on launch
+- **Personalized Interaction:** Asks for and remembers the user's name
+- **Response System:** Answers questions about:
+  - Password safety
+  - Phishing scams
+  - Safe browsing
+  - Suspicious links
+- **Input Validation:** Gracefully handles empty or invalid inputs
+- **Enhanced UI:** Colored text, borders, typing effect for realism
 
 ### Part 2 - Advanced WPF Chatbot Experience
 
@@ -92,6 +116,27 @@ CyberBotV2/
     gracefully
 * **Enhanced User Experience:** Uses colored UI elements, animations, borders, and organized layouts for readability
 
+### 🔹 Part 3 Features
+- **📋 Task Assistant**
+  - Add, view, mark complete, and delete cybersecurity tasks.
+  - Each task includes a title, optional description, and optional reminder text.
+  - All tasks are stored persistently in a `tasks.json` file (auto‑created in the output folder).
+  - The task list loads automatically when the application starts.
+- **🎮 Cybersecurity Quiz**
+  - 12 questions covering phishing, password safety, HTTPS, public Wi‑Fi, 2FA, malware, social engineering, and more.
+  - One question at a time with radio‑button answers.
+  - Immediate feedback with **green** (correct) or **red** (incorrect) text and an explanation.
+  - Final score report with a motivational message, plus **Retry** and **New Questions** buttons.
+- **📝 Activity Log**
+  - Records every significant action: tasks added/completed/deleted, quiz starts/completions, NLP intents, and reminders.
+  - Timestamps in `[HH:mm]` format.
+  - Typing `show activity log` or `what have you done for me?` displays the last 10 entries.
+  - If there are more than 10 entries, a *Show More* prompt reveals the full history.
+- **🧠 NLP Simulation**
+  - Uses keyword detection (`string.Contains()`) and synonym dictionaries to understand varied phrasings.
+  - Recognises intents such as *add task*, *remind me*, *start quiz*, and *show activity log* even when phrased differently (e.g., *“create a new task to enable 2FA”*, *“test my knowledge”*).
+  - Greatly reduces the default *“I didn’t quite understand that”* responses.
+
 ---
 
 ## How to Run
@@ -102,6 +147,7 @@ CyberBotV2/
 * Visual Studio 2022
 * .NET 8.0 SDK or later
 * Speakers/Headphones for voice greeting playback
+* Newtonsoft.Json` 13.0.4+ (for JSON storage)
 
 ### Steps
 
