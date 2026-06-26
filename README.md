@@ -116,23 +116,23 @@ CyberBotV2/
     gracefully
 * **Enhanced User Experience:** Uses colored UI elements, animations, borders, and organized layouts for readability
 
-### 🔹 Part 3 Features
-- **📋 Task Assistant**
+### Part 3 Features
+- **Task Assistant**
   - Add, view, mark complete, and delete cybersecurity tasks.
   - Each task includes a title, optional description, and optional reminder text.
   - All tasks are stored persistently in a `tasks.json` file (auto‑created in the output folder).
   - The task list loads automatically when the application starts.
-- **🎮 Cybersecurity Quiz**
+- **Cybersecurity Quiz**
   - 12 questions covering phishing, password safety, HTTPS, public Wi‑Fi, 2FA, malware, social engineering, and more.
   - One question at a time with radio‑button answers.
   - Immediate feedback with **green** (correct) or **red** (incorrect) text and an explanation.
   - Final score report with a motivational message, plus **Retry** and **New Questions** buttons.
-- **📝 Activity Log**
+- **Activity Log**
   - Records every significant action: tasks added/completed/deleted, quiz starts/completions, NLP intents, and reminders.
   - Timestamps in `[HH:mm]` format.
   - Typing `show activity log` or `what have you done for me?` displays the last 10 entries.
   - If there are more than 10 entries, a *Show More* prompt reveals the full history.
-- **🧠 NLP Simulation**
+- **NLP Simulation**
   - Uses keyword detection (`string.Contains()`) and synonym dictionaries to understand varied phrasings.
   - Recognises intents such as *add task*, *remind me*, *start quiz*, and *show activity log* even when phrased differently (e.g., *“create a new task to enable 2FA”*, *“test my knowledge”*).
   - Greatly reduces the default *“I didn’t quite understand that”* responses.
