@@ -21,14 +21,14 @@ namespace CybersecurityChatbotPartTwo
 
         private Random random;
 
-        public ChatBot()
+        public ChatBot(ActivityLogger logger)
         {
             random = new Random();
             keywordResponder = new KeywordResponder();
             sentimentDetector = new SentimentDetector();
             memoryStore = new MemoryStore();
 
-            activityLogger = new ActivityLogger();
+            activityLogger = logger;
             taskManager = new TaskManager(activityLogger);
             quizManager = new QuizManager(activityLogger);
         }

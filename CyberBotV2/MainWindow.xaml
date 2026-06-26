@@ -311,6 +311,7 @@
 				</TabItem>
 
 				<!-- QUIZ TAB -->
+				<!-- QUIZ TAB -->
 				<TabItem Header="🎮 Quiz">
 					<Grid Margin="10" Background="#1E1E2E">
 						<Grid.RowDefinitions>
@@ -337,7 +338,7 @@
 									   Margin="0,5,0,0"/>
 						</StackPanel>
 
-						<!-- Feedback (separate row, above options) -->
+						<!-- Feedback -->
 						<Border Grid.Row="1"
 								Background="#1E1E2E"
 								Padding="5"
@@ -350,13 +351,14 @@
 									   Text=""/>
 						</Border>
 
-						<!-- Options (dynamically created) -->
+						<!-- Options -->
 						<StackPanel x:Name="QuizOptionsPanel"
 									Grid.Row="2"
 									Margin="0,0,0,10"/>
 
-						<!-- Buttons -->
-						<StackPanel Grid.Row="3"
+						<!-- BUTTON PANEL -->
+						<StackPanel x:Name="QuizButtonPanel"
+									Grid.Row="3"
 									Orientation="Horizontal"
 									HorizontalAlignment="Center"
 									Margin="0,5,0,0">

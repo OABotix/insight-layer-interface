@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using System.Linq;
 
 namespace CybersecurityChatbotPartTwo
 {
@@ -25,9 +26,11 @@ namespace CybersecurityChatbotPartTwo
         {
             InitializeComponent();
 
-            // Create the chatbot instance
-            chatbot = new ChatBot();
             activityLogger = new ActivityLogger();
+
+            // Create the chatbot instance
+            chatbot = new ChatBot(activityLogger);
+
             taskManager = new TaskManager(activityLogger);
             quizManager = new QuizManager(activityLogger);
 
@@ -265,6 +268,12 @@ namespace CybersecurityChatbotPartTwo
         // ---- QUIZ HANDLERS ----
         private void QuizStartButton_Click(object sender, RoutedEventArgs e)
         {
+            // Remove only dynamic buttons (Tag == "Dynamic")
+            var toRemove = QuizButtonPanel.Children.OfType<Button>()
+                .Where(b => b.Tag as string == "Dynamic").ToList();
+            foreach (var btn in toRemove)
+                QuizButtonPanel.Children.Remove(btn);
+
             quizManager.StartQuiz();
             QuizStartButton.Visibility = Visibility.Collapsed;
             QuizSubmitButton.Visibility = Visibility.Visible;
@@ -274,10 +283,19 @@ namespace CybersecurityChatbotPartTwo
 
         private void RegenerateQuizQuestions()
         {
-            // Reset quiz and reshuffle questions
+            // Remove dynamic buttons
+            var toRemove = QuizButtonPanel.Children.OfType<Button>()
+                .Where(b => b.Tag as string == "Dynamic").ToList();
+            foreach (var btn in toRemove)
+                QuizButtonPanel.Children.Remove(btn);
+
             quizManager = new QuizManager(activityLogger);
             MessageBox.Show("🔄 Questions regenerated! Click 'Start Quiz' to try again.", "Quiz Ready", MessageBoxButton.OK, MessageBoxImage.Information);
+
             QuizStartButton.Visibility = Visibility.Visible;
+            QuizSubmitButton.Visibility = Visibility.Collapsed;
+            QuizNextButton.Visibility = Visibility.Collapsed;
+
             QuizFeedbackText.Text = "";
             QuizQuestionText.Text = "Press 'Start Quiz' to begin!";
             QuizScoreText.Text = "Score: 0/0";
@@ -286,13 +304,18 @@ namespace CybersecurityChatbotPartTwo
         private void ShowCurrentQuizQuestion()
         {
             var q = quizManager.GetCurrentQuestion();
+
+            // --- ALWAYS RESET BUTTON VISIBILITY ---
+            QuizSubmitButton.Visibility = Visibility.Visible;
+            QuizNextButton.Visibility = Visibility.Collapsed;
+            QuizStartButton.Visibility = Visibility.Collapsed;
+
             if (q == null)
             {
                 // Quiz finished - Show Report
                 QuizQuestionText.Text = "🎉 Quiz Complete!";
                 QuizScoreText.Text = $"Final Score: {quizManager.Score}/{quizManager.TotalQuestions}";
 
-                // Show final message with color
                 string finalMsg = quizManager.GetFinalMessage();
                 string emoji = quizManager.Score >= 8 ? "🌟" : "📚";
 
@@ -304,14 +327,10 @@ namespace CybersecurityChatbotPartTwo
                 QuizNextButton.Visibility = Visibility.Collapsed;
                 QuizStartButton.Visibility = Visibility.Collapsed;
 
-                // Add Retry and Regenerate buttons
-                StackPanel buttonPanel = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 10, 0, 0)
-                };
+                // Clear any existing dynamic buttons from the panel
+                QuizButtonPanel.Children.Clear();
 
+                // Create Retry button
                 Button retryBtn = new Button
                 {
                     Content = "🔁 Retry Quiz",
@@ -319,39 +338,42 @@ namespace CybersecurityChatbotPartTwo
                     Foreground = Brushes.White,
                     FontWeight = FontWeights.Bold,
                     Margin = new Thickness(0, 0, 10, 0),
-                    Padding = new Thickness(15, 8, 15, 8)
+                    Padding = new Thickness(15, 8, 15, 8),
+                    Tag = "Dynamic"
                 };
                 retryBtn.Click += (s, args) => { QuizStartButton_Click(s, args); };
 
+                // Create Regenerate button
                 Button regenerateBtn = new Button
                 {
                     Content = "🔄 New Questions",
                     Background = new SolidColorBrush(Color.FromRgb(74, 144, 217)),
                     Foreground = Brushes.White,
                     FontWeight = FontWeights.Bold,
-                    Padding = new Thickness(15, 8, 15, 8)
+                    Padding = new Thickness(15, 8, 15, 8),
+                    Tag = "Dynamic"
                 };
                 regenerateBtn.Click += (s, args) => { RegenerateQuizQuestions(); };
 
-                buttonPanel.Children.Add(retryBtn);
-                buttonPanel.Children.Add(regenerateBtn);
+                // Remove any existing dynamic buttons
+                var existingDynamic = QuizButtonPanel.Children.OfType<Button>()
+                    .Where(b => b.Tag as string == "Dynamic").ToList();
+                foreach (var btn in existingDynamic)
+                    QuizButtonPanel.Children.Remove(btn);
 
-                // Add to grid (find the grid parent)
-                var parentGrid = QuizOptionsPanel.Parent as Grid;
-                if (parentGrid != null)
-                {
-                    Grid.SetRow(buttonPanel, 3);
-                    Grid.SetColumnSpan(buttonPanel, 2);
-                    parentGrid.Children.Add(buttonPanel);
-                }
+                // Then add new ones
+                QuizButtonPanel.Children.Add(retryBtn);
+                QuizButtonPanel.Children.Add(regenerateBtn);
 
                 return;
             }
 
+            // --- SHOW THE QUESTION ---
             QuizQuestionText.Text = $"Q{quizManager.CurrentQuestionNumber}/{quizManager.TotalQuestions}: {q.Question}";
             QuizScoreText.Text = $"Score: {quizManager.Score}";
+
+            // Clear previous options and add new ones
             QuizOptionsPanel.Children.Clear();
-            // Create radio buttons for each option
             for (int i = 0; i < q.Options.Count; i++)
             {
                 var rb = new System.Windows.Controls.RadioButton
@@ -363,9 +385,13 @@ namespace CybersecurityChatbotPartTwo
                 };
                 QuizOptionsPanel.Children.Add(rb);
             }
+
             QuizFeedbackText.Text = "";
+
+            // --- ENSURE SUBMIT BUTTON IS VISIBLE, NEXT IS HIDDEN ---
             QuizSubmitButton.Visibility = Visibility.Visible;
             QuizNextButton.Visibility = Visibility.Collapsed;
+            QuizStartButton.Visibility = Visibility.Collapsed;
         }
 
         private void QuizSubmitButton_Click(object sender, RoutedEventArgs e)
@@ -401,14 +427,16 @@ namespace CybersecurityChatbotPartTwo
                 QuizFeedbackText.Text = "❌ Incorrect.\n" + explanation;
             }
 
+            // Hide Submit, show Next (if not finished)
             QuizSubmitButton.Visibility = Visibility.Collapsed;
+
             if (!finished)
             {
                 QuizNextButton.Visibility = Visibility.Visible;
             }
             else
             {
-                // Quiz finished
+                // Quiz finished - show final results
                 QuizQuestionText.Text = "🎉 Quiz complete!";
                 QuizScoreText.Text = $"Final Score: {quizManager.Score}/{quizManager.TotalQuestions}\n\n{quizManager.GetFinalMessage()}";
                 QuizOptionsPanel.Children.Clear();
@@ -420,8 +448,8 @@ namespace CybersecurityChatbotPartTwo
         private void QuizNextButton_Click(object sender, RoutedEventArgs e)
         {
             QuizNextButton.Visibility = Visibility.Collapsed;
-            ShowCurrentQuizQuestion();
             QuizSubmitButton.Visibility = Visibility.Visible;
+            ShowCurrentQuizQuestion();
         }
 
         private void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
